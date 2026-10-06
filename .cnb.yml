@@ -6,66 +6,69 @@ main:
   push:
     - services:
         - docker
-      runner:
-        cpus: 4
-      stages:
-        - name: docker login
-          script:
-            - docker login -u ${CNB_TOKEN_USER_NAME} -p "${CNB_TOKEN}" ${CNB_DOCKER_REGISTRY}
+          runner:
+            cpus: 4
+          stages:
+            - name: docker login
+              script:
+                - docker login -u ${CNB_TOKEN_USER_NAME} -p "${CNB_TOKEN}" ${CNB_DOCKER_REGISTRY}
 
-        - name: docker build
-          script:
-            # 构建上下文为仓库根目录，Dockerfile 在 docker/ 下；开启国内镜像加速
-            - >
-              docker build
-              -f docker/Dockerfile
-              --build-arg PIP_INDEX_URL=https://mirrors.cloud.tencent.com/pypi/simple
-              --build-arg PIP_TRUSTED_HOST=mirrors.cloud.tencent.com
-              --build-arg NPM_REGISTRY=https://mirrors.cloud.tencent.com/npm/
-              --build-arg APT_MIRROR=mirrors.cloud.tencent.com
-              -t ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest
-              .
+            - name: docker build
+              script:
+                # 构建上下文为仓库根目录，Dockerfile 在 docker/ 下；开启国内镜像加速
+                # --no-cache 强制重建，避免构建缓存导致源代码未更新
+                - >
+                  docker build
+                  --no-cache
+                  -f docker/Dockerfile
+                  --build-arg PIP_INDEX_URL=https://mirrors.cloud.tencent.com/pypi/simple
+                  --build-arg PIP_TRUSTED_HOST=mirrors.cloud.tencent.com
+                  --build-arg NPM_REGISTRY=https://mirrors.cloud.tencent.com/npm/
+                  --build-arg APT_MIRROR=mirrors.cloud.tencent.com
+                  -t ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest
+                  .
 
-        - name: docker push latest
-          script:
-            - docker push ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest
+            - name: docker push latest
+              script:
+                - docker push ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest
 
-        - name: docker push timestamp tag
-          script:
-            - BKTAG=$(date "+%Y%m%d%H%M%S")
-            - docker tag ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:${BKTAG}
-            - docker push ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:${BKTAG}
+            - name: docker push timestamp tag
+              script:
+                - BKTAG=$(date "+%Y%m%d%H%M%S")
+                - docker tag ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:${BKTAG}
+                - docker push ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:${BKTAG}
 
 # 手动触发（在构建页面点"手动构建"）
 "**":
   web_trigger:
     - services:
         - docker
-      runner:
-        cpus: 4
-      stages:
-        - name: docker login
-          script:
-            - docker login -u ${CNB_TOKEN_USER_NAME} -p "${CNB_TOKEN}" ${CNB_DOCKER_REGISTRY}
+          runner:
+            cpus: 4
+          stages:
+            - name: docker login
+              script:
+                - docker login -u ${CNB_TOKEN_USER_NAME} -p "${CNB_TOKEN}" ${CNB_DOCKER_REGISTRY}
 
-        - name: docker build
-          script:
-            - >
-              docker build
-              -f docker/Dockerfile
-              --build-arg PIP_INDEX_URL=https://mirrors.cloud.tencent.com/pypi/simple
-              --build-arg PIP_TRUSTED_HOST=mirrors.cloud.tencent.com
-              --build-arg NPM_REGISTRY=https://mirrors.cloud.tencent.com/npm/
-              --build-arg APT_MIRROR=mirrors.cloud.tencent.com
-              -t ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest
-              .
+            - name: docker build
+              script:
+                - >
+                  docker build
+                  --no-cache
+                  -f docker/Dockerfile
+                  --build-arg PIP_INDEX_URL=https://mirrors.cloud.tencent.com/pypi/simple
+                  --build-arg PIP_TRUSTED_HOST=mirrors.cloud.tencent.com
+                  --build-arg NPM_REGISTRY=https://mirrors.cloud.tencent.com/npm/
+                  --build-arg APT_MIRROR=mirrors.cloud.tencent.com
+                  -t ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest
+                  .
 
-        - name: docker push latest
-          script:
-            - docker push ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest
+            - name: docker push latest
+              script:
+                - docker push ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest
 
-        - name: docker push timestamp tag
-          script:
-            - BKTAG=$(date "+%Y%m%d%H%M%S")
-            - docker tag ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:${BKTAG}
-            - docker push ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:${BKTAG}
+            - name: docker push timestamp tag
+              script:
+                - BKTAG=$(date "+%Y%m%d%H%M%S")
+                - docker tag ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:${BKTAG}
+                - docker push ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:${BKTAG}
