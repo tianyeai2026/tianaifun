@@ -126,7 +126,7 @@ def build_app(server: OctopServer) -> FastAPI:
     install_setup_lockdown(app, server)
 
     # CORS：必须最后添加（最外层，最先执行），这样 OPTIONS 预检请求
-    # 不会被 JWT 认证中间件拦截。默认包含 Capacitor App 的 WebView origin，
+    # 不会被 JWT 认证中间件拦截。默认包含 Capacitor / Tauri App 的 WebView origin，
     # 用户可通过 config.json 的 cors_origins 追加额外来源。
     from octop.api.deps import ACCESS_TOKEN_RESPONSE_HEADER
 
@@ -134,6 +134,7 @@ def build_app(server: OctopServer) -> FastAPI:
         "http://localhost",
         "capacitor://localhost",
         "https://localhost",
+        "https://tauri.localhost",
     )
     _cors_origins = list(_DEFAULT_CORS_ORIGINS)
     if cfg and cfg.cors_origins:
