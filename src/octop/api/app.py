@@ -117,7 +117,16 @@ def build_app(server: OctopServer) -> FastAPI:
     app.state.octop_server = server
     _install_exception_handlers(app)
 
-    # CORS：始终启用，默认包含 Capacitor App 的 WebView origin。
+    from octop.api.middleware.bridge_proxy import install as install_bridge_proxy
+
+    # Bridge proxy must sit inside JWT auth so ``request.state.octop_user`` is set
+    # (Starlette runs the last-added middleware first).
+    install_bridge_proxy(app, server)
+    install_jwt_auth(app, server)
+    install_setup_lockdown(app, server)
+
+    # CORS：必须最后添加（最外层，最先执行），这样 OPTIONS 预检请求
+    # 不会被 JWT 认证中间件拦截。默认包含 Capacitor App 的 WebView origin，
     # 用户可通过 config.json 的 cors_origins 追加额外来源。
     from octop.api.deps import ACCESS_TOKEN_RESPONSE_HEADER
 
@@ -140,14 +149,6 @@ def build_app(server: OctopServer) -> FastAPI:
         allow_headers=["*"],
         expose_headers=[ACCESS_TOKEN_RESPONSE_HEADER],
     )
-
-    from octop.api.middleware.bridge_proxy import install as install_bridge_proxy
-
-    # Bridge proxy must sit inside JWT auth so ``request.state.octop_user`` is set
-    # (Starlette runs the last-added middleware first).
-    install_bridge_proxy(app, server)
-    install_jwt_auth(app, server)
-    install_setup_lockdown(app, server)
 
     if server.app_runtime is not None and server.app_runtime.bridge_manager is not None:
         from octop.api.bridge_peer import prepare_peer_dashboard_turn
