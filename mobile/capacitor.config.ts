@@ -7,7 +7,9 @@ const config: CapacitorConfig = {
   bundledWebRuntime: false,
   android: {
     allowMixedContent: true,
-    captureInput: true,
+    // captureInput must be false: true overrides the WebView InputConnection
+    // and breaks Chinese IME composition (candidate words / 组合输入).
+    captureInput: false,
     webContentsDebuggingEnabled: true,
   },
   server: {
