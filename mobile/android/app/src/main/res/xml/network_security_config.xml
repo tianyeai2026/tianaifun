@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!--
+      自托管 Octop 场景：
+      1. 允许明文 HTTP（局域网 IP 访问，如 http://192.168.1.100:8088）
+      2. 信任系统 CA + 用户手动安装的 CA（自签名证书场景）
+    -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

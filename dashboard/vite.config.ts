@@ -60,6 +60,7 @@ export default defineConfig(({ mode }) => {
   const apiPort = process.env.VITE_API_PORT ?? env.VITE_API_PORT ?? "8088";
 
   const isProd = mode === "production";
+  const isMobile = mode === "mobile";
   const analyze = env.ANALYZE === "true";
   // Dev server defaults to Vite's :5173. Override with VITE_DEV_PORT (e.g. 80
   // for LAN / same-origin setups). Must stay in sync with server.hmr.clientPort.
@@ -87,9 +88,14 @@ export default defineConfig(({ mode }) => {
     }
   }
 
+  // mobile 构建输出到 mobile/dist/（供 Capacitor 使用），默认输出到后端 dashboard
+  const outDir = isMobile
+    ? path.resolve(__dirname, "../mobile/dist")
+    : path.resolve(__dirname, "../src/octop/dashboard");
+
   return {
     build: {
-      outDir: path.resolve(__dirname, "../src/octop/dashboard"),
+      outDir,
       emptyOutDir: true,
       chunkSizeWarningLimit: 1600,
       // Limit Rollup worker concurrency to prevent OOM on memory-constrained hosts.
@@ -166,12 +172,16 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       BASE_URL: JSON.stringify(apiBaseUrl),
-      MOBILE: false,
+      MOBILE: isMobile,
     },
     plugins: [
       suppressViteDisconnectReload(),
       react(),
-      VitePWA({
+      // mobile 构建禁用 Service Worker（本地文件无需缓存，且 SW 会导致更新问题）
+      ...(isMobile
+        ? []
+        : [
+            VitePWA({
         // prompt: new SW stays in waiting until the user accepts via
         // PwaUpdatePrompt → applyUpdate() → SKIP_WAITING. Avoid autoUpdate
         // skipWaiting + page reload loops (especially Safari/WebKit).
@@ -271,7 +281,8 @@ export default defineConfig(({ mode }) => {
             },
           ],
         },
-      }),
+            }),
+          ]),
       ...extraPlugins,
     ],
     css: {

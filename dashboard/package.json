@@ -9,6 +9,7 @@
     "build:docker": "vite build",
     "build:prod": "tsc -b && vite build --mode production",
     "build:test": "tsc -b && vite build --mode test",
+    "build:mobile": "tsc -b && vite build --mode mobile",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",

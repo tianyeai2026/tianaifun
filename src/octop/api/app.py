@@ -117,17 +117,29 @@ def build_app(server: OctopServer) -> FastAPI:
     app.state.octop_server = server
     _install_exception_handlers(app)
 
-    if cfg and cfg.cors_origins:
-        from octop.api.deps import ACCESS_TOKEN_RESPONSE_HEADER
+    # CORS：始终启用，默认包含 Capacitor App 的 WebView origin。
+    # 用户可通过 config.json 的 cors_origins 追加额外来源。
+    from octop.api.deps import ACCESS_TOKEN_RESPONSE_HEADER
 
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins=cfg.cors_origins,
-            allow_credentials=True,
-            allow_methods=["*"],
-            allow_headers=["*"],
-            expose_headers=[ACCESS_TOKEN_RESPONSE_HEADER],
-        )
+    _DEFAULT_CORS_ORIGINS = (
+        "http://localhost",
+        "capacitor://localhost",
+        "https://localhost",
+    )
+    _cors_origins = list(_DEFAULT_CORS_ORIGINS)
+    if cfg and cfg.cors_origins:
+        for origin in cfg.cors_origins:
+            if origin not in _cors_origins:
+                _cors_origins.append(origin)
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=_cors_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        expose_headers=[ACCESS_TOKEN_RESPONSE_HEADER],
+    )
 
     from octop.api.middleware.bridge_proxy import install as install_bridge_proxy
 

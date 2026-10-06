@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Android build outputs
+android/.gradle/
+android/build/
+android/app/build/
+android/app/release/
+android/captures/
+android/local.properties
+android/.idea/
+android/*.iml
+android/app/*.iml
+
+# Gradle
+android/gradle/wrapper/gradle-wrapper.jar
+
+# Generated assets (can be regenerated with @capacitor/assets)
+android/app/src/main/res/mipmap-*/
+android/app/src/main/res/drawable-*/
+android/app/src/main/res/values/colors.xml
+android/app/src/main/res/values-night/
+
+# Dist (built by dashboard build:mobile)
+dist/
+
+# APK outputs
+*.apk
+*.aab
