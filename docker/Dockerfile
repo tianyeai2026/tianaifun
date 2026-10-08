@@ -133,14 +133,7 @@ RUN mkdir -p /data/.octop
 
 # 预下载默认中文向量模型 bge-small-zh-v1.5，避免部署后手动安装
 RUN mkdir -p /opt/default_embedding_models \
-    && python -c "
-from fastembed import TextEmbedding
-from pathlib import Path
-cache_dir = Path('/opt/default_embedding_models')
-model = TextEmbedding(model_name='BAAI/bge-small-zh-v1.5', cache_dir=str(cache_dir))
-list(model.embed(['模型预热']))
-print('bge-small-zh-v1.5 预下载完成')
-"
+    && python -c "from fastembed import TextEmbedding; m = TextEmbedding(model_name='BAAI/bge-small-zh-v1.5', cache_dir='/opt/default_embedding_models'); list(m.embed(['预热'])); print('bge-small-zh-v1.5 预下载完成')"
 
 EXPOSE 8088
 
