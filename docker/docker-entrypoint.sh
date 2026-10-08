@@ -99,6 +99,18 @@ EOF
     echo "[entrypoint] 凭据已保存至: $CREDENTIAL_FILE"
 fi
 
+# 数据卷里没有向量模型时，从镜像预装目录复制 bge-small-zh-v1.5
+EMBEDDING_DIR="${OCTOP_HOME}/embedding_models"
+DEFAULT_EMBEDDING_DIR="/opt/default_embedding_models"
+if [ -d "$DEFAULT_EMBEDDING_DIR" ]; then
+    if [ ! -d "$EMBEDDING_DIR" ] || [ -z "$(ls -A "$EMBEDDING_DIR" 2>/dev/null)" ]; then
+        echo "[entrypoint] 首次启动，正在复制预安装的向量模型 bge-small-zh-v1.5 ..."
+        mkdir -p "$EMBEDDING_DIR"
+        cp -a "$DEFAULT_EMBEDDING_DIR/." "$EMBEDDING_DIR/"
+        echo "[entrypoint] 向量模型已就绪。"
+    fi
+fi
+
 if [ $# -eq 0 ]; then
     echo "[entrypoint] 正在启动 Octop，端口 $PORT..."
     exec octop run --host 0.0.0.0 --port "$PORT"

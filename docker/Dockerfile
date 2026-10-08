@@ -107,7 +107,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
         export UV_INDEX_URL="$PIP_INDEX_URL"; \
         if [ -n "$PIP_TRUSTED_HOST" ]; then export UV_INSECURE_HOST="$PIP_TRUSTED_HOST"; fi; \
     fi \
-    && uv sync --frozen --no-install-project --no-dev --extra browser
+    && uv sync --frozen --no-install-project --no-dev --extra browser --extra local-embedding
 
 ENV PATH="/app/.venv/bin:$PATH" \
     PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright
@@ -124,12 +124,23 @@ RUN --mount=type=cache,target=/root/.cache/uv \
         export UV_INDEX_URL="$PIP_INDEX_URL"; \
         if [ -n "$PIP_TRUSTED_HOST" ]; then export UV_INSECURE_HOST="$PIP_TRUSTED_HOST"; fi; \
     fi \
-    && uv sync --frozen --no-dev --extra browser \
+    && uv sync --frozen --no-dev --extra browser --extra local-embedding \
     && apt-get update && apt-get install -y --no-install-recommends fonts-noto-cjk \
     && apt-get purge -y --auto-remove build-essential \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
 RUN mkdir -p /data/.octop
+
+# 预下载默认中文向量模型 bge-small-zh-v1.5，避免部署后手动安装
+RUN mkdir -p /opt/default_embedding_models \
+    && python -c "
+from fastembed import TextEmbedding
+from pathlib import Path
+cache_dir = Path('/opt/default_embedding_models')
+model = TextEmbedding(model_name='BAAI/bge-small-zh-v1.5', cache_dir=str(cache_dir))
+list(model.embed(['模型预热']))
+print('bge-small-zh-v1.5 预下载完成')
+"
 
 EXPOSE 8088
 
